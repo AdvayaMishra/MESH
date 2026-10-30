@@ -1,0 +1,10 @@
+import { fileURLToPath } from 'node:url';
+import { existsSync, rmSync } from 'node:fs';
+const port = process.env.E2E_PORT || '3120';
+const stop = `.test-server-${port}.stop`;
+if (existsSync(stop)) rmSync(stop);
+const entry = new URL('../node_modules/next/dist/bin/next', import.meta.url);
+process.argv = [process.execPath, fileURLToPath(entry), 'start', '--hostname', '127.0.0.1', '--port', port];
+setTimeout(() => process.exit(0), 600000).unref();
+setInterval(() => { if (existsSync(stop)) { rmSync(stop); process.exit(0); } }, 500).unref();
+await import(entry.href);

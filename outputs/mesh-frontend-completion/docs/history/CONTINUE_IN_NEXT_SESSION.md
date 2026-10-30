@@ -1,0 +1,11 @@
+# Remaining work
+
+This is not a completed frontend. Restore dependency installation, run `npm ci`, typecheck, lint, build, start the app and run all existing Playwright, HR, tenant, task, security, sprint and review tests with installed dependencies. The offline Node 24 runs use shims and do not prove browser or real Zustand behavior. Fix every failure and verify all four modules in a browser at mobile and desktop sizes.
+
+Perform a complete route-by-route interaction audit: find toast-only, hardcoded and component-local operations; implement and connect missing workflows to tenant-scoped demo state, with validation and consistent dependent views. Specifically review organization, employee and budget management; onboarding/verification and payroll; project/task CRUD, sprints and PR approvals; security incident status, remediation, evidence and analytics; notifications and account settings. Test every journey in the original brief, including denial, isolation, empty and invalid cases. Check what-if and Copilot behavior while switching organizations, and audit exports versus filters. Verify keyboard navigation and accessibility.
+
+Define and agree real service contracts with the backend team, build authenticated adapters and server-enforced authorization, replace demo services deliberately, and run integration tests with multiple tenants. The HTTP client is scaffolding only. Do not call the demo production-ready or handle real confidential information until these steps and independent security review are complete.
+
+Sprint planner, review history and project decisions were added after the previous checkpoint; verify their UI, form errors, cross-page synchronization and tenant switching in a real browser. The sprint planner is demo-only and organization-wide; plan project-specific scheduling and persistence with the backend.
+
+Verify simulated PR reviews, repository authorization switching, scan messaging, report role filters and VADER overview/Copilot consistency in a browser with real dependencies. Client-side role checks cannot secure sensitive data; the server must enforce authorization and tenant isolation. The duplicate VADER declaration was fixed by source inspection, but full compilation remains unverified.

@@ -1,0 +1,14 @@
+import { strict as assert } from "node:assert";
+import { answerCopilotQuestion } from "../lib/copilot-answers";
+import { tenants } from "../lib/api/mock";
+const source = tenants.lumen;
+const incident = source.incidents[0];
+const answer = answerCopilotQuestion(`Explain ${incident.id}`, source);
+assert.ok(answer.bullets?.some((line) => line.includes(incident.id)));
+assert.ok(answer.refs.some((ref) => ref.href.includes(incident.id)));
+const other = answerCopilotQuestion(`Explain ${incident.id}`, tenants.northwind);
+assert.equal(JSON.stringify(other).includes(incident.id), false);
+assert.equal(JSON.stringify(answerCopilotQuestion("Explain risk changes", source)).includes("largest single driver"), false);
+assert.ok(answerCopilotQuestion("What is the best pizza?", source).text.includes("couldn't find"));
+assert.ok(answerCopilotQuestion("Show cloud permissions", source).details.some((line) => /cloud|permission/i.test(line)));
+console.log("Assistant grounding: 6 checks passed");

@@ -1,0 +1,15 @@
+# Security boundaries
+
+Threats addressed in implemented paths: tenant-ID spoofing, object-ID guessing, cross-tenant relationships, role escalation, invitation replay/wrong email, unverified JWT claims, domain-verification SSRF, secret values in scanner evidence, sensitive request values in error output and response self-approval.
+
+Authentication uses constrained asymmetric JWT verification plus live provider email confirmation. Authorization derives roles from database membership. Explicit tenant predicates, composite foreign keys and PostgreSQL RLS provide separate tenant controls. Runtime credentials remain backend-only. RLS cannot protect against compromise of a trusted runtime role that can set arbitrary tenant context; least privilege, private networking and injection prevention remain essential.
+
+Ordinary request bodies are bounded at 256 KiB; identity-image paths allow at most 2 MiB. API requests have Redis-backed per-source-IP limits of 120/minute. Rate limiter failure blocks API requests. Test mode disables it only in isolated tests and is forbidden in production configuration. Per-account authentication limits remain a Supabase policy. Forwarded IP headers are ignored until a trusted proxy topology is configured. TLS termination, request/header timeouts and edge limits are deployment requirements.
+
+Invitation tokens use 48 random bytes and SHA-256 storage. Domain tokens are public proofs, stored as hashes; HTTPS verification validates all IPs and pins the TLS socket, blocks redirects and limits body size. Egress firewall review remains necessary.
+
+ID uploads require a validated image, ClamAV clearance and private Storage; human HR review alone approves identity. Scans are queued for a dedicated container launcher, with network-free resource-constrained analysis; Docker runtime validation remains pending. AWS assessment is read-only through explicitly bound temporary roles. AI defaults to a deterministic local provider; external gateways require configuration, HTTPS and explicit opt-in and receive aggregates only. Synthetic response approval causes no real account changes. See docs/SCANNING.md for containment and unvalidated operational boundaries.
+
+Invitation mail credentials are encrypted in the transactional outbox and cleared after processing. PostgreSQL rejects audit/Trust Stars/payroll-rule ledger mutation; per-organization audit hashes detect changes relative to retained heads, with external anchoring still pending. Runtime bootstrap grants only the explicit application table allowlist, removes role memberships and refuses inherited schema creation privileges. Database role setup does not grant access to unrelated public tables.
+
+Report vulnerabilities privately to the project maintainer; no public reporting address has been configured. Do not attach real credentials or identity documents. Independent penetration testing, data protection review, audit tamper evidence and operational incident procedures are still required before production use.

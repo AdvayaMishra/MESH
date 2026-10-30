@@ -1,0 +1,3 @@
+title = "MESH scanner configuration"
+[extend]
+useDefault = true

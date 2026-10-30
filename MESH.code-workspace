@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "name": "MESH Backend",
+      "path": "outputs/mesh"
+    },
+    {
+      "name": "MESH Frontend",
+      "path": "outputs/mesh-frontend-completion"
+    }
+  ]
+}

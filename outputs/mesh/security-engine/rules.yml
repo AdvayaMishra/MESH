@@ -1,0 +1,16 @@
+rules:
+  - id: mesh.python.eval
+    languages: [python]
+    severity: ERROR
+    message: Dynamic eval requires security review
+    pattern: eval(...)
+  - id: mesh.python.shell
+    languages: [python]
+    severity: ERROR
+    message: Shell execution requires security review
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+  - id: mesh.javascript.eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Dynamic eval requires security review
+    pattern: eval(...)

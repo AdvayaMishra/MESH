@@ -1,0 +1,15 @@
+# Deployment preparation
+
+The standalone [backend deployment scaffold](infrastructure/deployment/README.md) and `.env.production.example` now separate externally managed production services from the development Compose stack. Real Compose configuration validation covers all five hardened service definitions; no production deployment is claimed. Run `scripts/verify_production_configuration.py` against the selected protected file before activation. Runtime production settings reject plaintext/unauthenticated Redis or disabled TLS verification, and reject remote plaintext malware screening. The development Compose stack now honors configured SMTP/ClamAV ports and forwards the verified malware TLS options.
+
+Compose is a development deployment scaffold. It has not been validated as a production deployment. Do not auto-deploy this increment. Use a nonproduction disposable database first.
+
+Build `infrastructure/docker/Dockerfile`, migrate with separately controlled administrator credentials, then bootstrap the restricted runtime role. Run API containers as UID 10001 with dropped capabilities, read-only filesystems and writable temporary storage only. Keep PostgreSQL/Redis private. Use TLS termination, trusted proxy configuration, request/header timeouts, explicit CORS and managed secrets. Pin reviewed image digests before production deployment.
+
+Run `/health/live` for liveness and `/health/ready` for dependency readiness. Readiness rejects overprivileged runtime roles, checks tables and Redis, and requires configured Supabase URL. It does not validate email, Supabase reachability or business workflows. Configure external uptime checks separately.
+
+Production backup retention/recovery drills, operational telemetry/audit retention, tracing, worker heartbeat monitoring, secure log export, key rotation and alert routing remain deployment requirements. `/metrics` exports process-level request counters/duration; keep it private and configure multi-process aggregation separately. Early rate/body rejections use the same request counters, correlation IDs and security response headers. Application logging emits JSON with request identifiers/status/timing and omits request URLs, headers and bodies. Configure protected log shipping separately. Uvicorn access logs are disabled to avoid invite tokens in URL query strings.
+
+Outbox worker requires an explicit organization UUID. Horizontal workers use row locks/SKIP LOCKED; encrypted invitation email uses bounded retries/backoff/dead-letter handling. Other topics record local receipts only. Scanner execution uses a separate dedicated Docker launcher, not the API/outbox container. Identity retention has an explicit per-tenant worker; actual external employee provisioning remains pending.
+
+Before release: full PostgreSQL RLS/role tests; disposable live Supabase auth tests; mail delivery/replay tests; migration smoke and recovery; container runtime checks; load tests; scanner sandbox validation; privacy assessment; independent security review; complete unsupported product modules.

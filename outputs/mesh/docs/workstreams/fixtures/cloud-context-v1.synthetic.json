@@ -1,0 +1,634 @@
+{
+  "envelope": {
+    "contract": "mesh.cloud-context",
+    "schema_version": "1.0.0",
+    "identity_version": "mesh-cloud-identity-v1",
+    "organization_id": "11111111-1111-4111-8111-111111111111",
+    "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+    "source_job_id": null,
+    "scope": {
+      "organization_id": "11111111-1111-4111-8111-111111111111",
+      "provider": "aws",
+      "partition": "aws",
+      "provider_account_id": "012345678901",
+      "service": "account",
+      "scope_kind": "account",
+      "region": null
+    },
+    "requested_scopes": [
+      {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "provider": "aws",
+        "partition": "aws",
+        "provider_account_id": "012345678901",
+        "service": "s3",
+        "scope_kind": "global",
+        "region": null
+      },
+      {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "provider": "aws",
+        "partition": "aws",
+        "provider_account_id": "012345678901",
+        "service": "iam",
+        "scope_kind": "global",
+        "region": null
+      },
+      {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "provider": "aws",
+        "partition": "aws",
+        "provider_account_id": "012345678901",
+        "service": "ec2",
+        "scope_kind": "regional",
+        "region": "us-east-1"
+      },
+      {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "provider": "aws",
+        "partition": "aws",
+        "provider_account_id": "012345678901",
+        "service": "rds",
+        "scope_kind": "regional",
+        "region": "us-east-1"
+      }
+    ],
+    "binding_ref": "synthetic-contract-fixture",
+    "binding_revision": "4569335624cd7ce312a779995b8c19a935082eeafd7ad54b5e4e49c16a56e851",
+    "normalizer_version": "mesh-aws-normalizer-1",
+    "collector_version": "mesh-aws-posture-2",
+    "publication_state": "sealed",
+    "synthetic": true,
+    "provenance": "synthetic_fixture",
+    "collection_started_at": "2026-10-26T00:00:00Z",
+    "collection_finished_at": "2026-10-26T00:00:00Z",
+    "collected_at": "2026-10-26T00:00:00Z",
+    "coverage": [
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "s3",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "s3.inventory",
+        "state": "complete",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 1,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": null
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.inventory",
+        "state": "partial",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 1,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": null
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "ec2",
+          "scope_kind": "regional",
+          "region": "us-east-1"
+        },
+        "check": "ec2.inventory",
+        "state": "complete",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": null
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "rds",
+          "scope_kind": "regional",
+          "region": "us-east-1"
+        },
+        "check": "rds.inventory",
+        "state": "complete",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": null
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.groups_membership",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.managed_policy_documents",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.inline_policies",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.resource_policies",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.boundaries",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.session_policies",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.scp",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.rcp",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      },
+      {
+        "scope": {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "provider": "aws",
+          "partition": "aws",
+          "provider_account_id": "012345678901",
+          "service": "iam",
+          "scope_kind": "global",
+          "region": null
+        },
+        "check": "iam.acl",
+        "state": "unsupported",
+        "timestamps": {
+          "observed_at": "2026-10-26T00:00:00Z",
+          "provider_modified_at": null,
+          "collected_at": "2026-10-26T00:00:00Z",
+          "fresh_until": "2026-10-26T01:00:00Z",
+          "max_age_seconds": 3600,
+          "freshness_policy_version": "1"
+        },
+        "observed_count": 0,
+        "expected_total": null,
+        "configured_limit": 600,
+        "truncated": false,
+        "reason_code": "unsupported_policy_layer"
+      }
+    ],
+    "partial": true,
+    "limits": {
+      "nodes": 600,
+      "permissions": 1000,
+      "inventory_entries": 200,
+      "pages_per_operation": 50
+    },
+    "errors": [],
+    "limitations": [
+      "Synthetic contract fixture. Never use as production provider evidence.",
+      "IAM effective permissions are not evaluated; unsupported policy layers remain explicit.",
+      "Evidence digests cover retained allowlisted summaries, not full provider responses."
+    ]
+  },
+  "assets": [
+    {
+      "organization_id": "11111111-1111-4111-8111-111111111111",
+      "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+      "node_type": "s3.bucket",
+      "scope": {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "provider": "aws",
+        "partition": "aws",
+        "provider_account_id": "012345678901",
+        "service": "s3",
+        "scope_kind": "global",
+        "region": null
+      },
+      "ownership": "bound_account",
+      "owner_account_id": "012345678901",
+      "identity_kind": "scoped_native_id",
+      "identity_strength": "scoped_reference",
+      "provider_uid": null,
+      "arn": null,
+      "native_id": "mesh-synthetic-contract-bucket",
+      "incarnation_ref": null,
+      "display_name": "Synthetic contract bucket",
+      "lifecycle_state": "observed_present",
+      "timestamps": {
+        "observed_at": "2026-10-26T00:00:00Z",
+        "provider_modified_at": null,
+        "collected_at": "2026-10-26T00:00:00Z",
+        "fresh_until": "2026-10-26T01:00:00Z",
+        "max_age_seconds": 3600,
+        "freshness_policy_version": "1"
+      },
+      "facts": {},
+      "evidence_refs": [
+        {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+          "evidence_id": "741b6539-c940-4c55-b74d-e65025ab1a88",
+          "source_kind": "synthetic_fixture",
+          "operation": "s3.inventory",
+          "observed_at": "2026-10-26T00:00:00Z",
+          "content_digest": "d74ac4223262286d3f904e882ded99db81be01039c351092714418c445f3a2ee",
+          "verification": "synthetic_fixture"
+        }
+      ],
+      "asset_key": "ca1_383d1b312c96647ba1a21df0194dfa60776add8d2a304ffd4411581b2dc64b7b"
+    }
+  ],
+  "principals": [
+    {
+      "organization_id": "11111111-1111-4111-8111-111111111111",
+      "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+      "node_type": "iam.role",
+      "scope": {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "provider": "aws",
+        "partition": "aws",
+        "provider_account_id": "012345678901",
+        "service": "iam",
+        "scope_kind": "global",
+        "region": null
+      },
+      "ownership": "bound_account",
+      "owner_account_id": "012345678901",
+      "identity_kind": "provider_uid",
+      "identity_strength": "provider_uid",
+      "provider_uid": "AROASYNTHETIC123",
+      "arn": "arn:aws:iam::012345678901:role/FixtureReader",
+      "native_id": null,
+      "incarnation_ref": "AROASYNTHETIC123",
+      "display_name": "FixtureReader",
+      "lifecycle_state": "observed_present",
+      "timestamps": {
+        "observed_at": "2026-10-26T00:00:00Z",
+        "provider_modified_at": null,
+        "collected_at": "2026-10-26T00:00:00Z",
+        "fresh_until": "2026-10-26T01:00:00Z",
+        "max_age_seconds": 3600,
+        "freshness_policy_version": "1"
+      },
+      "facts": {},
+      "evidence_refs": [
+        {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+          "evidence_id": "2412acfd-ff18-41d4-880c-9f364871a9c5",
+          "source_kind": "synthetic_fixture",
+          "operation": "iam.inventory",
+          "observed_at": "2026-10-26T00:00:00Z",
+          "content_digest": "d3babd0065de291cd550d4bcfbc9c304b20731b1b5aa55b27b03569bfaa0136c",
+          "verification": "synthetic_fixture"
+        }
+      ],
+      "principal_key": "cp1_9b32b3f88e6c00ba0dadde5dd2db879ca7fe8ba1b400c30d44f5493351821afc",
+      "principal_type": "iam_role"
+    }
+  ],
+  "permissions": [
+    {
+      "organization_id": "11111111-1111-4111-8111-111111111111",
+      "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+      "permission_id": "cc512566-0800-4704-9545-59413da3a67e",
+      "subject_ref": {
+        "kind": "principal",
+        "key": "cp1_9b32b3f88e6c00ba0dadde5dd2db879ca7fe8ba1b400c30d44f5493351821afc"
+      },
+      "principal_key": "cp1_9b32b3f88e6c00ba0dadde5dd2db879ca7fe8ba1b400c30d44f5493351821afc",
+      "policy_arn": "arn:aws:iam::012345678901:role/FixtureReader",
+      "policy_version_ref": null,
+      "statement_index": 0,
+      "policy_kind": "trust",
+      "observed_effect": "Allow",
+      "actions": [
+        "sts:AssumeRole"
+      ],
+      "not_actions": [],
+      "resources": [],
+      "not_resources": [],
+      "condition_state": "absent",
+      "condition_digest": null,
+      "evaluation_basis": "observed_statement_only",
+      "effective_decision": "not_evaluated",
+      "unknown_dependencies": [
+        "identity_policies",
+        "session",
+        "boundaries",
+        "scp",
+        "rcp",
+        "resource_policies",
+        "request_context",
+        "trust_principal_selector"
+      ],
+      "timestamps": {
+        "observed_at": "2026-10-26T00:00:00Z",
+        "provider_modified_at": null,
+        "collected_at": "2026-10-26T00:00:00Z",
+        "fresh_until": "2026-10-26T01:00:00Z",
+        "max_age_seconds": 3600,
+        "freshness_policy_version": "1"
+      },
+      "evidence_refs": [
+        {
+          "organization_id": "11111111-1111-4111-8111-111111111111",
+          "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+          "evidence_id": "0ab3829d-7074-47dd-be97-7471680d8577",
+          "source_kind": "synthetic_fixture",
+          "operation": "iam.role_trust_statement",
+          "observed_at": "2026-10-26T00:00:00Z",
+          "content_digest": "0e01a7e5bc0754fbe5fa66805786646e7f058ac3ae0114a6fadb4667ced799b4",
+          "verification": "synthetic_fixture"
+        }
+      ]
+    }
+  ],
+  "relationships": [],
+  "evidence": [
+    {
+      "reference": {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+        "evidence_id": "2412acfd-ff18-41d4-880c-9f364871a9c5",
+        "source_kind": "synthetic_fixture",
+        "operation": "iam.inventory",
+        "observed_at": "2026-10-26T00:00:00Z",
+        "content_digest": "d3babd0065de291cd550d4bcfbc9c304b20731b1b5aa55b27b03569bfaa0136c",
+        "verification": "synthetic_fixture"
+      },
+      "availability": "available",
+      "summary": {
+        "node_type": "iam.role",
+        "arn": "arn:aws:iam::012345678901:role/FixtureReader",
+        "provider_uid": "AROASYNTHETIC123"
+      },
+      "reasons": []
+    },
+    {
+      "reference": {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+        "evidence_id": "741b6539-c940-4c55-b74d-e65025ab1a88",
+        "source_kind": "synthetic_fixture",
+        "operation": "s3.inventory",
+        "observed_at": "2026-10-26T00:00:00Z",
+        "content_digest": "d74ac4223262286d3f904e882ded99db81be01039c351092714418c445f3a2ee",
+        "verification": "synthetic_fixture"
+      },
+      "availability": "available",
+      "summary": {
+        "node_type": "s3.bucket",
+        "native_id": "mesh-synthetic-contract-bucket"
+      },
+      "reasons": []
+    },
+    {
+      "reference": {
+        "organization_id": "11111111-1111-4111-8111-111111111111",
+        "assessment_id": "65dfa04c-e885-4afc-8757-a48dfa31de47",
+        "evidence_id": "0ab3829d-7074-47dd-be97-7471680d8577",
+        "source_kind": "synthetic_fixture",
+        "operation": "iam.role_trust_statement",
+        "observed_at": "2026-10-26T00:00:00Z",
+        "content_digest": "0e01a7e5bc0754fbe5fa66805786646e7f058ac3ae0114a6fadb4667ced799b4",
+        "verification": "synthetic_fixture"
+      },
+      "availability": "available",
+      "summary": {
+        "node_type": "iam.role",
+        "statement_index": 0,
+        "effect": "Allow",
+        "condition_state": "absent"
+      },
+      "reasons": []
+    }
+  ]
+}

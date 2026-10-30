@@ -1,0 +1,66 @@
+name: backend-checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine@sha256:f4610795587492cd4fb887c2dc3de301b813278bb6f616992061141b5f15ac36
+        env:
+          POSTGRES_DB: mesh_test_ci
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd 'pg_isready -U postgres -d mesh_test_ci'
+          --health-interval 5s --health-retries 10
+    env:
+      MESH_POSTGRES_ADMIN_URL: postgresql+psycopg://postgres@localhost:5432/mesh_test_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r requirements-dev.lock -e . pip-audit bandit
+      - run: ruff check . && ruff format --check .
+      - run: mypy backend/app
+      - run: pytest -q
+      - run: bandit -r backend/app -x backend/tests -s B101
+      - run: pip-audit
+      - run: python scripts/audit_scanner_dependencies.py
+      - run: docker build -f infrastructure/docker/Dockerfile -t mesh-backend:ci .
+      - run: docker compose config --quiet
+        env:
+          POSTGRES_ADMIN_PASSWORD: ci_validation_placeholder_only
+          MESH_DB_PASSWORD: ci_validation_placeholder_runtime_only
+      - name: Verify default and external SMTP Compose configuration
+        run: python scripts/verify_compose_mail.py --docker-executable /usr/bin/docker --output docs/compose-mail-configuration-results.json
+      - name: Verify hardened backend deployment scaffold without starting services
+        run: python scripts/verify_production_compose.py --docker-executable /usr/bin/docker --output docs/production-compose-validation-results.json
+      - run: docker build -f security-engine/Dockerfile -t mesh-scanner:local .
+      - run: docker build -f security-engine/Fetch.Dockerfile -t mesh-fetch:local .
+      - run: docker build -f security-engine/OCR.Dockerfile -t mesh-ocr:local .
+      - run: python scripts/verify_ocr_local.py --docker-executable /usr/bin/docker --font /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf
+      - run: pytest -q backend/tests/test_docker_scanners.py
+        env:
+          MESH_DOCKER_SCANNER_TESTS: 'true'
+      - run: python scripts/verify_scanner_recovery.py --docker-executable /usr/bin/docker --image mesh-scanner:local --dedicated-disposable-docker-host
+      - name: Audit backend Debian source packages (advisory matches fail)
+        run: python scripts/audit_debian_image.py --docker-executable /usr/bin/docker --image mesh-backend:ci --trusted-operator-image --output docs/backend-debian-audit.json
+      - name: Audit scanner Debian source packages (advisory matches fail)
+        if: ${{ !cancelled() }}
+        run: python scripts/audit_debian_image.py --docker-executable /usr/bin/docker --image mesh-scanner:local --trusted-operator-image --output docs/scanner-debian-audit.json
+      - name: Audit OCR Debian source packages (advisory matches fail)
+        if: ${{ !cancelled() }}
+        run: python scripts/audit_debian_image.py --docker-executable /usr/bin/docker --image mesh-ocr:local --trusted-operator-image --output docs/ocr-debian-audit.json
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

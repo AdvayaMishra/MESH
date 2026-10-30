@@ -1,0 +1,11 @@
+# R1 production completion requirements — 30 October 2026
+
+Current preflight is docs/r1-current-production-preflight.json. This is an offline assessment, not a live acceptance report. Current development configuration intentionally fails production clearance. Do not turn flags on just to make checks pass or interrupt the existing local demonstration.
+
+1. Production deployment: choose and authorize a host, a controlled public HTTPS hostname, certificate/proxy configuration, immutable application image and authenticated TLS Redis. Then configure exact application/CORS/invitation origins and privileged MFA, deploy tenant workers and verify actual HTTPS Auth/invitation/session flows. Existing Gmail, Supabase and localhost CAPTCHA configuration do not select a deployment host or establish production acceptance.
+2. Real SCIM acceptance: supply an authorized directory's HTTPS Users endpoint, private least-privilege credential, approved tenant binding and disposable test identities. Run reviewed inactive provisioning, independent activation, deactivation/restoration, conditional-write and lost-response reconciliation checks. Do not treat the loopback synthetic directory as live acceptance.
+3. OCR acceptance: obtain collection/access/retention/hold approval and a representative authorized evaluation corpus, choose accepted quality thresholds, resolve image/advisory clearance, deploy/update screening and isolated OCR workers, and test controlled uploads/review/expiry. Fictional demo pictures cannot establish identity/privacy or accuracy acceptance.
+
+Already present: production configuration/Compose scaffolds, redacted preflight, Auth/session/MFA and invitation services, tenant-scoped directory/lifecycle code, encrypted isolated OCR/private Storage/retention/hold code, bounded evaluation harnesses, extensive local and real native PostgreSQL tests. Existing reports distinguish synthetic, actual-provider and production evidence.
+
+No public endpoint, directory account, representative ID material or privacy/security approval was supplied for this checkpoint. No deployment, purchase, real employee-document collection, production OCR enablement or fake verification was performed. Keep R1 partially accepted until these gates are actually satisfied. Use existing implementation rather than rebuilding it.

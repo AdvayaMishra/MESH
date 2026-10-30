@@ -1,0 +1,175 @@
+# MESH remaining-work checklist â€” 27 October 2026
+
+## 30 October 2026 — fresh invitation authority and timezone-safe expiry
+
+Closed a stale-authority gap in R1 invitation workflows. Creation, resend and cancellation now validate current role/active membership and active organization after the tenant lock. Acceptance refreshes organization state and locks/rechecks the issuer's current membership before granting access. Old pending links cannot grant membership after the issuer loses invitation authority. Authorized resends rotate the token and bind it to the new issuer, with existing creation/resend audit history preserved. Session/MFA context is preserved in the refreshed actor. The mail worker checks fresh issuer authority and skips unauthorized links; acceptance remains the final gate when revocation races an in-flight SMTP operation.
+
+Fixed expiry comparisons to normalize timezone-aware timestamps to UTC instants instead of replacing their timezone. A retained +05:30 offset cannot extend an expired link. Existing role separation, encrypted token binding, single-use acceptance and tenant isolation remain unchanged. This requires no further migration; hosted schema remains 0029 with 57 forced-RLS tables and 192 API operations / 165 paths.
+
+Validation: final full default suite **1,323 passed / 36 skipped / zero failures**; final focused invitation journey/status/security suite **28 passed**. A separate real native PostgreSQL run passed **34 integration cases**, including issuer and organization revocation committed by another database session while the acceptor held cached state, plus RLS, dump/restore and fresh SQL-policy equivalence. The final non-UTC expiry change is covered in the focused/default suites. The 34 PostgreSQL cases skipped by the default suite ran separately; the other two skipped fixtures still need dedicated Docker scanner / disposable Storage configuration. Ruff, formatting of 99 application files, mypy for 99 modules and Bandit pass. Earlier frontend build/types pass; these later invitation changes do not change its contract or UI.
+
+Actual restricted-runtime helper checks preserve owner→HR and HR→developer permissions and reject the opposite combinations; all diagnostics rolled back. Backend and frontend-bridge readiness return 200 after restart. No new invitations, emails, passwords, roles or external model/provider settings were created/changed. This is not a fresh interactive CAPTCHA/Supabase invitation acceptance journey or new live SMTP delivery proof.
+
+Evidence: docs/invitation-authority-results.json, final regression XML, source hashes and docs/INVITATION_DELIVERY.md. Successful native test clusters were stopped/removed; an initial unstarted initialization directory is retained because Windows ACL blocks cleanup. It contains only disposable test state, not hosted credentials. The status-file encoding incident was recovered from preserved history and consolidated checkpoint evidence; subsequent status writes use atomic UTF-8 replacement. Existing ZIP remains unchanged. Production HTTPS, real SCIM directory, representative OCR/privacy/image clearance and deferred AWS acceptance remain open.
+
+## 30 October 2026 — membership discovery backend deployed and validated
+
+Added authenticated GET /api/v1/users/me/organizations: active-self organization memberships, cursor pagination, current roles and audit metadata without a selected organization header. No employee, email, other-member or activity data is returned; business authorization and privileged MFA remain enforced. The frontend selector UI is not yet changed to consume this endpoint; only its bridge contract was synchronized/rebuilt.
+
+Append-only migration0029 adds a user/org lookup index and a SELECT-only policy for active self memberships when tenant context is empty. Existing tenant policies and table grants are unchanged. Deployed0028→0029 atomically to the existing Supabase project after local PostgreSQL validation;57tables retain forced RLS. Existing policy expressions were compared unchanged. No business data or credentials were changed. Supabase CLI history was not updated because a compatible history catalog was unavailable; alembic_version records0029. New SQL artifact20261030000100is supplied without rewriting older frozen SQL.
+
+Default regression1313passed/34skipped/0failures. Separate real native PostgreSQL32/32integration cases pass, including predicate-free self-discovery, denied writes, hidden private tables, dump/restore and fresh frozen SQL/storage policy equivalence. The32PGcases skipped by the default environment were executed separately; the other2cases require dedicated Docker scanner/disposable Storage fixtures. Ruff/99-file formatting/mypy99/Bandit and production frontend build/types pass. OpenAPI/bridge192operations/165paths. Live restricted-role discovery checks pass for all4actualMESHaccounts; unknown account returns no memberships and unscoped employee rows remain0. Diagnostics rolled back their audit writes. Backend/bridge readiness200; discovery401without authentication. Native test clusters stopped/removed; the initial restricted-token start failed before any server started and was superseded by successful isolated runs.
+
+Evidence: docs/MEMBERSHIP_DISCOVERY.md, docs/membership-discovery-results.json, deployment/live/runtime results and source hashes. Current backend/Redis/mail exec68022;frontendexec12207. Existing ZIP not refreshed. Production HTTPS/SCIM/OCR acceptance and deferred AWS remain unclaimed.
+
+## 30 October 2026 — backend continuation: currency-correct insights and invitation observability
+
+Implemented the reported owner Insights mismatch: optional validated currency selection, automatic choice of the only recorded currency, historical INR fallback only for empty data, explicit409 for ambiguous multi-currency data, and additive response currency metadata. SSE accepts owner-only currency selection and reuses the same calculation. No currency conversion, extra personal context, external model or richer friend-owned R5 functionality was added. Actual restricted-role Supabase service verification returns USD250.00 with1observed month; transaction rolled back to avoid persisted diagnostic audit/usage writes.
+
+Advanced R1-04 with GET /api/v1/invitations and GET /api/v1/invitations/{id}/delivery. Listing is bounded, paginated, status-filtered and audited; HR cannot see HR invitations, and other employees cannot read invitation metadata. Delivery reports the latest queue entry and distinguishes queued/retrying/dead-letter, SMTP acceptance, safe skips and legacy processed-unknown. No token, hash, ciphertext or raw transport exception is exposed; inbox receipt is never claimed. Worker retains a sanitized outcome, erases ciphertext after processing and checks encrypted email/token binding. Revoked/expired/superseded invitations are never labelled sent. No schema migration or existing mail resend was performed. Current frontend controls are unchanged; its contract/allowlist snapshot was synchronized for future list/status UI work.
+
+Verification: full backend1303passed/32skipped/0failures/errors; Ruff and99-file format checks pass; mypy99modules passes; Bandit passes with inherited nosec warnings. Production frontend build/TypeScript passes. OpenAPI and synchronized allowlist now191operations/164paths. Live backend and frontend bridge readiness200; both new bridge routes reject unauthenticated requests with401. Actual legacy invitation correctly reports processed_unknown. This is direct service/readiness evidence, not a fresh real-CAPTCHA browser journey or new live SMTP acceptance test. Evidence: docs/backend-continued-results.json, backend-continued-regression.xml and backend-continued-source-hashes.json; API details: docs/AI_CURRENCY.md and docs/INVITATION_DELIVERY.md.
+
+Recovered a stale local process ledger only after verifying every recorded PID was absent, and restarted API/Redis/mail plus final frontend. Each startup now uses a fresh workspace temporary directory to avoid stale Windows heartbeat permissions. Current mail worker completes healthy idle cycles. Original ZIP was not refreshed. Supabase0028/57forced-RLS tables unchanged. R1 production HTTPS/SCIM/directory/OCR operational acceptance and deferred AWS checks remain open; these changes do not declare R1 or the entire backend release complete.
+
+## 29 October 2026 — Supabase network blocker resolved
+
+The user requested fixing the network restriction and granted turn-scoped network access. Restarted only the owned local API/Redis runtime. Actual API liveness and readiness now both return200; readiness checks the configured database runtime role, reads the organizations table and pings authenticated Redis. The final frontend login and its proxied backend readiness were checked separately (see docs/final-integration-network-recheck.json). No test authentication substitutions, migrations, hosted business writes or provider changes were made. This resolves the prior Windows10013 connectivity blocker for the current runtime; full live hosted frontend user journeys remain a separate acceptance step. The grant is scoped to this turn, so future sessions may need network permission again.
+
+## 29 October 2026 — final frontend integrated with the existing backend
+
+The final source in outputs/mesh-frontend-completion now uses the actual existing backend contract by default. MESH.code-workspace opens the backend and final frontend in VS Code with build/run/test tasks. Authentication/Turnstile, organization proof and invitations, native projects/tasks, HR/payroll/leave/lifecycle/documents, finance, repository scans, VADER evidence/incidents/simulations, cloud status, AI/SSE, audit, sessions/MFA and reviewed Trust workflows are wired to supported APIs. The contract snapshot/allowlist matches189operations/163paths; browser permissions follow real backend roles. Unsupported backend operations show unavailable states and cannot execute demo mutations in connected mode.
+
+Verification: production build and TypeScript pass; ESLint has0errors/6warnings;11Node tests pass;22connected browser tests pass, including a35-route five-role crawl, actual HTTP persistence, independent approvals and tenant/object authorization denials. Full backend regression:1,280passed/32skipped/zero failures or errors. A bounded known-secret check found no configured backend secret values in318frontend source/browser-bundle files. Browser acceptance uses isolated SQLite and explicit identity/CAPTCHA transport substitutions; it is not a live Supabase/RLS acceptance result.
+
+Actual local API liveness and authenticated Redis pass. Hosted readiness returns503 because this session denies the configured database's outgoing socket with Windows10013. Existing Supabase settings and verify-full CA remain configured; no new approval was requested or TLS weakened. Live hosted final-frontend journeys remain unverified this turn. The local invitation URL now targets3120. No migrations, hosted business records, provider settings, GitHub source upload or archive were changed/created by this integration. External provider acceptance, production deployment and unmerged friend-owned work remain pending; this is not completion of the entire project or all R1.
+
+See the final frontend docs/FINAL_BACKEND_INTEGRATION.md and verification/final-integration-summary.json, plus backend docs/final-frontend-integration-results.json. Statements below describing final frontend integration as deferred are historical and superseded by this entry.
+
+This is the current known backlog for the repository in this workspace, reconciled against the original master prompt, MESH_PARALLEL_WORK_PLAN.md and IMPLEMENTATION_STATUS.md. R1â€“R7 are the existing delivery workstreams, not new phases or the original prompt's phase numbers. The checkpoint frontend has been received and a temporary preview explicitly authorized/integrated; final frontend integration remains separate.
+
+Friend-owned changes have not been received or reviewed in this workspace. Their items below mean unfinished/unverified in this copy, not a claim about what the friend's Codex has or has not completed.
+
+Use these stable IDs for progress reports. Do not silently expand this list: mark each item implemented, locally tested, live-validated and/or release-accepted as applicable. Any newly discovered omission must identify its original requirement/evidence and be recorded explicitly. Passing more tests does not itself complete another checklist item.
+
+## Completed baseline â€” do not count these as missing
+
+- Deployed Supabase0028,57 forced-RLS application tables,26 frozen SQL artifacts; tenant constraints/grants/private Storage policies and database integration evidence.
+- Auth/OTP/refresh/recovery/MFA/session adapters; organization/domain verification; invitations/RBAC; core HR/payroll/leave/complaints/lifecycle, project/task/approval and Trust Stars workflows.
+- Reviewed SCIM provisioning/revocation/restoration adapters, durable reservations/leases/fencing; live directory acceptance remains separate.
+- Private image/malware handling, isolated encrypted OCR, independent HR review, document hold/release/queue/retention, fresh authority and exact Storage reference checks.
+- Actual private Supabase Storage protocol/cleanup checks on a fictional PNG; actual earlier scoped Auth/MFA/Storage/OCR provider evidence, with its documented limits.
+- Isolated Semgrep/Bandit/Gitleaks/OSV tooling, immutable scan jobs/provenance, signed webhook processing, exact-metadata finding identity/history.
+- Telemetry schemas/ingestion, deterministic/statistical detection, configurable risk/correlation policies, incidents/graphs/notes and safe simulated response/scenarios.
+- AWS inventory/IAM/context and durable billing APIs/workers/adapters, tenant-bound STS external IDs and a reviewable role template; no real AWS acceptance is claimed.
+- Local template/Ollama/gateway AI, authorized minimized contexts, structured output/streaming, usage/admission and durable uncertain-charge accounting.
+- Local Docker/Compose API/database/Redis/mail/worker startup/health/restore and scanner/OCR component evidence. Current Windows regression: 1,067 passes / 32 skips. Earlier R4 Linux1,070/2 including30 PostgreSQL cases and ten Compose gates retain their original source fingerprint; not rerun after R1 metadata changes. OpenAPI: 188 operations / 162 paths.
+
+## R1 â€” identity and HR acceptance (this Codex)
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R1-01 | Capture/persist/expose the owner's name in the onboarding/profile contract while preserving Supabase as the single password authority. Company name is already captured separately when creating an organization. | Implemented/local-tested: optional validated owner_name, Supabase display-metadata persistence contract and typed self-profile.26 new regressions/full1,066 suite pass; approved live fixtures verify current provider metadata reads. Normal signup/email acceptance remains R1-03. See workstreams/R1_OWNER_NAME.md. |
+| R1-02 | Configure and verify production Supabase Auth SMTP/templates, allowed redirects, OTP/confirmation/recovery settings, CAPTCHA, refresh/session and privileged-MFA policies. | Authorized project configuration + negative/live policy evidence. Existing working Auth adapters are not to be rebuilt. Database/Storage access alone does not grant Auth administration. |
+| R1-03 | Complete real signup/email-OTP, CAPTCHA, resend, password-recovery and session/refresh journeys against the chosen inbox/provider, including failure/expiry/replay cases and cleanup. | Live acceptance; existing scoped login/MFA/provider fixtures are not proof of inbox delivery or CAPTCHA enforcement. |
+| R1-04 | Connect authenticated production MESH invitation SMTP and verify invitation/resend delivery, invalidated links and provider outages. | Configuration + live acceptance. This transport is separate from Supabase Auth mail. |
+| R1-05 | Connect an authorized SCIM directory and dedicated test identities; verify inactive creation, reviewed activation, deactivation/offboarding, rehire/restoration, version conflicts, revocation and partial-failure reconciliation. | Configuration + live acceptance. Core workflows are implemented; no existing employee is a disposable destructive fixture. |
+| R1-06 | Complete production identity-document/OCR acceptance: organization-approved collection/access/retention/hold procedures, representative authorized accuracy evaluation, engine/image clearance, malware-definition maintenance, encryption-key handling, worker deployment and controlled enablement. | Operational/privacy decisions + deployment/evaluation. Local OCR and real fictional-PNG Storage/OCR evidence already exist. |
+
+R1-01 was an original requirement omitted from earlier summaries; its backend implementation and local tests are now complete. R1-02â€“06 remain open within their stated operational/live scope. The rest were already in the agreed acceptance scope.
+
+29 October R1 update: added the missing signup confirmation resend API with CAPTCHA forwarding and the shared per-account limiter; tightened numeric OTP/email input; added reviewable source confirmation/recovery templates, a redacted read-only Supabase Auth configuration checker and a bounded private-corpus OCR evaluation harness. These advance local R1-02/03/06 implementation and do not close the corresponding live acceptance items. The user confirmed that the needed external services/access and approved OCR material are not configured yet. See [Auth acceptance](workstreams/R1_AUTH_ACCEPTANCE.md), [OCR evaluation](workstreams/R1_OCR_EVALUATION.md) and the newest implementation-status entry. R4 AWS deferral is unchanged.
+
+Subsequent live R1-02 progress: project Auth management access is now connected. Password minimum12 and email OTP expiry600seconds were applied and independently read back; existing8-digit OTP, confirmation, refresh rotation and TOTP settings are preserved. Email template customization remains pending custom SMTP; the initial combined PATCH returned400 and no targeted values changed, followed by a successful settings-only PATCH200. The user has no sender domain; dedicated Gmail/app-password setup is pending for development delivery tests. This supersedes only the missing-management-access observation above. Current local regression:1189passed/32skipped; production acceptance remains incomplete.
+
+Latest R1 evidence update,29October: R1-02 now has actual Gmail SMTP and numeric confirmation/recovery templates deployed and read back; CAPTCHA and production HTTPS/deployment policies remain open. R1-03 now has actual controlled-inbox signup/confirmation/resend, code negatives/replay, login/refresh and separate recovery/password/logout evidence, with exact fixture cleanup; real expiry/reuse-window/CAPTCHA/deployed-HTTP acceptance remains unverified. R1-04 now has actual PostgreSQL encrypted outbox/worker/transport-refusal/retry/superseded-token/Gmail/inbox evidence with no committed business fixtures; full deployed invitation HTTP and production HTTPS acceptance remains separate. See [latest evidence and limits](workstreams/R1_AUTH_ACCEPTANCE.md). R1-05/06 prerequisites and R4 AWS deferral are unchanged. Earlier missing-SMTP/template summaries are historical.
+
+Latest checkpoint,29October: local production deployment/configuration gates, verified-TLS Redis and malware controls, total-budget ClamAV transport and HTTPS synthetic SCIM full-lifecycle/reconciliation tests are implemented. Full Windows1275passed/32skipped; static gates and real offline Compose parsing pass. Actual runtime production preflight intentionally fails for absent deployment/directory/OCR prerequisites. Real timed OTP expiry and post-grace refresh rejection are now verified, with within-grace acceptance retained in evidence; do not claim instant provider-family revocation. Real isolated OCR on10 wholly fictional images scored9/10 exact name and10/10 exact ID, not representative acceptance. R1-02â€“04 still require CAPTCHA and deployed HTTPS/MFA/session/HTTP acceptance; R1-05 requires a real authorized directory; R1-06 requires approved representative data/privacy, image clearance, maintained malware screening and deployed worker acceptance. See [deferred operator actions](workstreams/R1_DEFERRED_OPERATOR_ACTIONS.md) and [current evidence](r1-deployment-directory-ocr-results.json). No approval/input requests while the user is away; no frontend or production settings changed.
+
+29October live CAPTCHA closure: Cloudflare keys are configured in Supabase; actual missing/invalid tokens and duplicate-token reuse are rejected. The user's genuine browser challenge was accepted by the actual provider. No accounts/email were created. CAPTCHA acceptance is complete for the connected local preview. Production hostname/deployed Auth journeys and final frontend integration remain pending; R1-02/03 as a whole remain open. See turnstile-setup-results.json and turnstile-live-challenge-results.json. The temporary local operator check is disabled after completion.
+
+## R2 â€” repository/scanner completion (friend; unmerged here)
+
+
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R2-01 | Verify the configured real GitHub App, authorized installation/repository, immutable-commit checkout and reachable signed webhook flow, including removal/revocation and failure cleanup. | Configuration + live acceptance. Scanner isolation and webhook signature/replay code already exist. |
+| R2-02 | Implement/evaluate finding identity across moved/changed code beyond exact-metadata grouping, with false-match and cross-tenant/provenance cases. | Code + evaluation, agreed workstream scope. |
+| R2-03 | Establish evidence-based remediation verification/timing using subsequent authorized scans, distinguishing a manual disposition or missing/failed scan from an independently verified fix. | Code + tests/evidence. |
+
+## R3 â€” VADER completion (friend; unmerged here)
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R3-01 | Implement/configure the selected authorized telemetry connectors and prove real source ingestion, source identity/provenance, deduplication, tenant isolation, outages and retention. | Connector code + live acceptance. A generic ingestion endpoint is already implemented; arbitrary device/network monitoring is not. |
+| R3-02 | Implement/evaluate ordered multi-stage attack templates, including out-of-order/late/missing events, benign competing sequences, policy versioning and retained decision evidence. | Code + tests/evaluation. Basic correlation and graph/timeline APIs already exist. |
+| R3-03 | Consume the shared R3/R4 asset/IAM contract in VADER and correlate observed resource/identity/permission relationships while preserving freshness, partial coverage and unknown effective access. | Code + integration tests. The contract and R4 reader facade exist; VADER consumer integration is not implemented here. |
+| R3-04 | Evaluate detectors/risk/correlation against documented synthetic/authorized datasets, false positives, cold starts and incomplete evidence; close missing required signal coverage found by that evaluation. | Evaluation + resulting fixes. Statistical scores are not calibrated probabilities. |
+
+## R4 â€” cloud/billing acceptance (this Codex)
+
+Scope clarification after the AWS discussion: MESH does not require an AWS account to run. R4 backend/local delivery is complete through implemented adapters, explicit status/unconfigured handling, development samples and handoff verification; see [R4 status](workstreams/R4_STATUS.md). R4-01â€“03 below retain the account-dependent activities for when an organization connects AWS. They remain unverified, and do not block the unrelated backend or require creating an AWS account merely for this project. Do not confuse this delivery boundary with real-provider or production acceptance.
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R4-01 | Configure/review the actual source workload identity, tenant target roles, region/read permissions and separate posture/billing bindings; validate/deploy the role template where authorized. | Configuration + actual AWS/IAM acceptance. The local template is not a deployed role. |
+| R4-02 | Run real read-only inventory/IAM/resource-policy acceptance: verified account/tenant scope, correct/omitted/wrong external-ID behavior, denied/partial coverage, budgets, freshness, failures and cancellation/revocation. | Live acceptance; no account or integration success is fabricated from SDK fixtures. |
+| R4-03 | Activate/connect actual Cost Explorer access; compare collected account/period/service/currency/refund/estimated results with the provider and verify replay, failure/cancellation and audit behavior without accidental repeated paid queries. | Live feed acceptance. Durable billing admission, storage, worker and report APIs already exist. |
+
+Cloud coverage limits: non-S3 resource policies, some federated principal forms and organization/session/SCP/RCP/ACL controls are not fully collected/evaluated; there is no complete AWS effective-permission engine. These are explicit unknowns, not credentials-only gaps. R3-03 must consume those unknowns honestly. Expanding to every AWS control layer is not silently added as a new mandatory R4 deliverable: any necessary expansion must be tied to an agreed check/use case and recorded separately.
+
+## R5 â€” remaining AI work (friend; unmerged here)
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R5-01 | Complete the agreed richer Owner/HR/DevTrack/VADER insight contexts/use cases, authorization/minimization and injection-resistant structured outputs. | Code + tests; existing generic/local context and insight handlers are preserved. |
+| R5-02 | Implement safe durable insight replay: actor/input/context binding, expiry/revocation, tenant isolation and no accidental duplicate provider generation/charge. | Code + tests, distinct from the already completed request accounting ledger. |
+| R5-03 | Add and validate the specifically selected additional provider adapters with authorized configuration, output/usage/error behavior and privacy checks. | Agreed workstream enhancement; provider selection/configuration and live evidence are needed. Existing local/Ollama/gateway support already satisfies a local-alternative path. |
+| R5-04 | Add the agreed verified vendor usage/invoice connectors and reconciliation, distinguishing provider-verified costs from estimates and owner attestations. | Agreed enhancement + provider access; not an original prerequisite to running the local backend. No vendor invoices are fabricated. |
+
+## R6 â€” merge, API and security convergence (coordinator, after feature handoffs)
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R6-01 | Establish a shared version-control baseline/history and receive the friend's branch/bundle or reviewable baseline-aligned patches, tests and configuration/model deltas. | Integration prerequisite. This backend checkout is not currently a Git repository; the public MESH repo intentionally remains README-only. No backend upload is authorized by this checklist. |
+| R6-02 | Review/merge R2/R3/R5 and shared files/contracts; assign/order any proposed migrations, reconcile models, rerun tenant/FK/RLS/Storage/grant checks and apply reviewed additive hosted migrations. | Integration + database acceptance. Deployed0028 and earlier remain frozen; do not redo completed migrations or reset the database. |
+| R6-03 | Finish tenant-managed organization metadata/settings/profile contracts and their authorization/tests. | Code/API completion for original section5. Current organization model/API is limited to basic name/status/verification/domain and per-feature/operator policy controls; it is not a generic tenant settings administration API. This gap was not explicit in earlier summaries. |
+| R6-04 | Finish aggregate/admin response schemas, collection filtering/sorting/cursors, event payload/consumer contracts and remaining sensitive-operation idempotency/authorization-race consistency across merged modules. | Code + contract/security tests. This is convergence, not rebuilding every existing endpoint. |
+| R6-05 | Complete the agreed external audit anchoring/verification and its configuration/retention behavior. | Code/configuration + tamper/recovery evidence. Local append-only/hash-linked controls already work; an unrestricted DB administrator can defeat local-only evidence. |
+| R6-06 | Review applicability and remediate available OS/native/vendor/dependency findings; rebuild and reassess exact images without blanket suppression. | Security work. Current gates retain69 backend,69 scanner and212 OCR advisory references, not that many independently confirmed unique exploitable flaws. |
+| R6-07 | Perform independent authorization/tenant/security review and resolve findings; verify secret handling, least privilege and production configuration after merges. | Review + fixes + evidence. Passing our tests does not substitute for this review. |
+
+## R7 â€” operations and release acceptance (both; coordinator owns final acceptance)
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| R7-01 | Configure production tracing/error tracking, centralized logs/metrics, worker supervision, alerts and escalation; test stalled/dead workers and dependency outages. | Operational integration + failure drills. Development logs/metrics/health/heartbeats already exist. |
+| R7-02 | Run broader authenticated multi-tenant load, endurance and recovery/backpressure tests using real deployment-sized services; fix bottlenecks/authorization/context leaks. | Performance/security acceptance. Existing bounded concurrency smoke is not a capacity benchmark. |
+| R7-03 | Configure production backup retention/access and conduct actual restore/disaster-recovery drills, including Storage/encryption-key handling and privacy/retention procedures. | Operational acceptance. Disposable database dump/restore tests already pass. |
+| R7-04 | Configure the chosen deployment environment: production secrets, verified TLS, least-privilege roles, MFA, CORS/redirects, worker profiles/schedules and required providers; deploy and verify it. | Deployment acceptance, not another local Compose setup. No automatic production deployment is authorized. |
+| R7-05 | After an authorized code-hosting handoff, run the supplied CI workflow on the actual backend repository and obtain clean required gates, including security/image checks. | Hosted CI acceptance. Workflow definitions exist locally; the current public README-only repository has not run them against this backend. |
+| R7-06 | Run final cross-module owner-to-HR-to-employee/project/scan/incident/AI/finance journeys on the merged build; close requirement coverage, refresh exact OpenAPI/setup/integration documentation and obtain final release sign-off. | Complete system acceptance, with implemented/local/live/production evidence distinguished. |
+
+## Final frontend integration â€” temporary checkpoint preview is integrated
+
+| ID | Remaining task | Type / completion evidence |
+|---|---|---|
+| FE-01 | Receive the actual Claude-built frontend and map its screens/fields/routes to the stabilized backend contracts. | Checkpoint source received/reviewed; temporary connected preview implemented. Final Claude frontend and per-screen contract mapping remain pending. |
+| FE-02 | Implement its real Auth/session/MFA, tenant/role navigation, API calls, uploads/signed access, scan/security updates and AI streaming; resolve contract mismatches. | Temporary real Auth/tenant/role/schema-form integration is implemented. Final screens/widgets, CAPTCHA and streaming mappings remain pending; no claim all prototype controls are live. |
+| FE-03 | Run browser end-to-end role/tenant/error/recovery tests and production frontend/backend connectivity/release checks. | Temporary acceptance passes13 local connected tests,70 visual-demo tests and5 real Supabase read-only browser journeys. Final frontend/provider/production journeys remain pending. |
+
+## Not silently added to the mandatory backlog
+
+- PDF processing, automatic leave accrual/carry-over, statutory tax/legal payroll engines and jurisdiction-specific calendars are optional extensions/product decisions, not hidden unfinished original requirements. Document holds were previously an extension and are now implemented.
+- Real Azure/GCP billing, GitLab/Bitbucket, additional cloud providers and every possible IAM control layer are future extensions unless explicitly selected. The original prompt prioritizes one real cloud provider and extensible interfaces.
+- Real disruptive incident enforcement is deliberately disabled: the original initial implementation allows safe simulation. Turning on real account/IP/cloud changes requires a separately configured and authorized integration; it is not a missing simulation feature.
+- Supabase CLI migration-history repair is conditional if switching to that migration tool. The existing Alembic/operator migration path is valid; do not replay the bootstrap or count CLI login/link/reset as unfinished database implementation.
+- Verified invoices/additional model vendors, semantic finding matching and external audit anchoring are named agreed-plan enhancements; they must not be confused with original minimum local-integration readiness requirements.
+
+Current frontend-facing readiness can use the implemented local/configured-provider backend. Completion of this full agreed delivery plan, live integrations and production/full-product acceptance still requires the items above. Do not label the entire project complete based on test counts alone.
+
+
+## Temporary native frontend checkpoint
+
+Original domain screens now use authenticated backend data and mutations. Native complaints passed submission/reload, owner isolation, developer denial and independent HR handling. Organization/MFA/repository/risk/simulation controls are connected; synthetic assessment history now has an explicit observed/synthetic filter. Startup shares bounded concurrent reads and caps initial audit history. All15 local cases passed; final runtime evidence is in native-preview-checkpoint.json. No hosted business seeding or provider-policy change occurred. See TEMPORARY_FRONTEND_PREVIEW.md for remaining advanced mappings and configuration. This does not complete R6/R7 or final frontend acceptance.

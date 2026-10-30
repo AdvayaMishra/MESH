@@ -1,0 +1,218 @@
+@import "tailwindcss";
+@import "@fontsource-variable/plus-jakarta-sans";
+
+/* ---------- MESH design tokens ---------- */
+:root {
+  --canvas: #f8faff;
+  --surface: #ffffff;
+  --ink: #172033;
+  --ink-2: #64748b;
+  --ink-3: #94a3b8;
+  --line: #e6eaf5;
+  --line-strong: #d6dcee;
+
+  --violet: #635bff;
+  --indigo: #4f46e5;
+  --mint: #00c9a7;
+  --sky: #38bdf8;
+  --cyan: #67e8f9;
+  --amber: #ffb547;
+  --coral: #ff6b8a;
+  --lavender: #a78bfa;
+
+  --tint-violet: #f1efff;
+  --tint-mint: #e8fff8;
+  --tint-sky: #eaf6ff;
+  --tint-amber: #fff6e5;
+  --tint-coral: #fff0f3;
+
+  --radius-card: 18px;
+  --shadow-card: 0 1px 2px rgba(23, 32, 51, 0.04), 0 8px 24px -12px rgba(79, 70, 229, 0.12);
+  --shadow-pop: 0 12px 40px -12px rgba(23, 32, 51, 0.25);
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --color-violet: var(--violet);
+  --color-indigo: var(--indigo);
+  --color-mint: var(--mint);
+  --color-sky: var(--sky);
+  --color-cyan: var(--cyan);
+  --color-amber: var(--amber);
+  --color-coral: var(--coral);
+  --color-lavender: var(--lavender);
+
+  --color-tint-violet: var(--tint-violet);
+  --color-tint-mint: var(--tint-mint);
+  --color-tint-sky: var(--tint-sky);
+  --color-tint-amber: var(--tint-amber);
+  --color-tint-coral: var(--tint-coral);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-display: "Plus Jakarta Sans Variable", var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 18px;
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+}
+
+* {
+  border-color: var(--line);
+}
+
+/* Grid children may shrink below their content width, so wide tables and charts scroll inside their own cards. */
+.grid > * {
+  min-width: 0;
+}
+
+html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+:focus-visible {
+  outline: 2px solid var(--violet);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+::selection {
+  background: rgba(99, 91, 255, 0.2);
+}
+
+/* Thin scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+/* ---------- Utility layer ---------- */
+@utility font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+@utility gradient-violet {
+  background-image: linear-gradient(135deg, #635bff 0%, #a78bfa 100%);
+}
+@utility gradient-cyan {
+  background-image: linear-gradient(135deg, #38bdf8 0%, #67e8f9 100%);
+}
+@utility gradient-mint {
+  background-image: linear-gradient(135deg, #00c9a7 0%, #34d6b9 55%, #67e8f9 100%);
+}
+@utility gradient-coral {
+  background-image: linear-gradient(135deg, #ff6b8a 0%, #ffb08a 100%);
+}
+@utility gradient-hero {
+  background-image:
+    radial-gradient(60% 60% at 15% 10%, rgba(167, 139, 250, 0.45) 0%, transparent 60%),
+    radial-gradient(50% 50% at 85% 20%, rgba(103, 232, 249, 0.45) 0%, transparent 60%),
+    radial-gradient(50% 60% at 60% 90%, rgba(255, 107, 138, 0.18) 0%, transparent 60%),
+    linear-gradient(180deg, #f6f5ff 0%, #f8faff 100%);
+}
+
+@layer components {
+  .card {
+    background-color: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    min-width: 0;
+  }
+
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    border-color: var(--line-strong);
+    box-shadow: 0 2px 4px rgba(23, 32, 51, 0.05), 0 18px 34px -16px rgba(79, 70, 229, 0.25);
+  }
+}
+
+.dot-grid {
+  background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Shimmer skeleton */
+@keyframes shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #eef1fa 0%, #f7f8fd 40%, #eef1fa 80%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 10px;
+}
+
+/* Marching dashes for attack chain / network lines */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+.flow-line {
+  stroke-dasharray: 6 6;
+  animation: dash-flow 1.2s linear infinite;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float-slow { animation: float-y 7s ease-in-out infinite; }
+.float-slower { animation: float-y 9s ease-in-out infinite reverse; }
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  animation: pulse-ring 1.8s ease-out infinite;
+  z-index: -1;
+}
+
+@keyframes caret-blink { 50% { opacity: 0; } }
+.caret::after {
+  content: "▍";
+  margin-left: 2px;
+  color: var(--violet);
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* React Flow tweaks */
+.react-flow__attribution { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,28 @@
+import { strict as assert } from 'node:assert';
+import { createApiClient, ApiError } from '../lib/integration/client.ts';
+const session = { getAccessToken: async () => 'token', getOrganizationId: () => 'org-a' };
+const client = createApiClient('https://example.test', session);
+let captured;
+globalThis.fetch = async (url, opts) => { captured = { url, opts }; return new Response('{"ok":true}', { status: 200 }); };
+assert.deepEqual(await client.request('/example'), {ok: true});
+assert.equal(captured.opts.headers.get('Authorization'), 'Bearer token');
+assert.equal(captured.opts.headers.get('X-Organization-Id'), 'org-a');
+assert.equal(captured.opts.redirect, 'error');
+assert.equal(captured.opts.credentials, 'omit');
+assert.equal(captured.opts.cache, 'no-store');
+await assert.rejects(() => client.request('//evil.test/'), /relative/);
+await assert.rejects(() => client.request('/\\evil.test/'), /relative/);
+await assert.rejects(() => createApiClient('https://example.test', { ...session, getAccessToken: async () => null }).request('/example'), /required/);
+globalThis.fetch = async () => new Response('', {status: 403});
+await assert.rejects(() => client.request('/example'), e => e instanceof ApiError && e.status === 403);
+console.log('API boundary: 10 checks passed');
+
+let org = 'org-a';
+const switching = createApiClient('https://example.test', { getAccessToken: async () => { org = 'org-b'; return 'token'; }, getOrganizationId: () => org });
+await assert.rejects(() => switching.request('/example'), /Organization changed/);
+assert.throws(() => createApiClient('https://user:password@example.test', session), /credentials/);
+org = 'org-a';
+const lateSwitch = createApiClient('https://example.test', { getAccessToken: async () => 'token', getOrganizationId: () => org });
+globalThis.fetch = async () => { org = 'org-b'; return new Response('{}'); };
+await assert.rejects(() => lateSwitch.request('/example'), /Organization changed/);
+console.log('API tenant-race and credential URL regression: 3 checks passed');

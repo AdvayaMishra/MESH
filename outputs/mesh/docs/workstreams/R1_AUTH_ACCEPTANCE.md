@@ -1,0 +1,52 @@
+# Current 30 October backend checkpoint
+
+Invitation flows now enforce fresh issuer/actor authority and timezone-safe expiry. Authenticated self-organization discovery is deployed at migration 0029. Current verification is in docs/invitation-authority-results.json and docs/membership-discovery-results.json. These code/database checks do not replace the remaining production HTTPS, directory, OCR/privacy or live provider acceptance gates. Older prerequisite observations below are historical; real localhost CAPTCHA and configured Gmail delivery evidence already exist.
+
+# R1 Auth configuration and acceptance
+
+## Latest SMTP and inbox acceptance — 29 October 2026
+
+Gmail SMTP/app-password credentials are now configured privately in Supabase and MESH. Hosted readback confirms custom SMTP and the source confirmation/recovery templates/subjects deployed successfully. Verified certificate-checked STARTTLS authentication and real arrival of confirmation, resend, recovery and invitation messages in the supplied account's controlled aliases. User addresses/credentials remain private. No inbox message was deleted, and only messages to fresh fixture aliases were searched/read.
+
+Public signup/confirmation/resend/cooldown/incorrect-code/replay and login/refresh passed. The initial full Auth probe then hit the existing2-emails/hour provider limit and removed its fixture; that partial result remains historical evidence. A separate administratively confirmed recovery-only fixture proved real inbox recovery, password update, old-password rejection, recovery replay rejection, new login and refresh denial after global logout. Both identities were verified absent after cleanup. The temporary quota allowance of3 was restored to2 and the60-second resend cooldown retained. This administrative setup is explicit; it does not falsely claim that the recovery-only fixture was itself created by public signup.
+
+Real PostgreSQL/outbox/Gmail tests verified encrypted queued payloads, obsolete queued-token discard, real transport refusal/retry, current-token inbox delivery, delivered ciphertext removal and rollback-only fixture absence. Rotation was performed on a synthetic rollback-only row; public invitation HTTP authorization/acceptance/cancellation/expiry journeys retain separate local coverage and pending deployed HTTP acceptance. No business rows were committed.
+
+See `gmail-live-acceptance-results.json`, the individual `gmail-*-results.json` reports and the latest implementation-status entry. The configuration-only checker deliberately reports `delivery_verified=false`/`live_journeys_verified=false` because that checker does not send or inspect email; actual inbox evidence belongs to the separate live reports. Its18 configuration checks now pass; CAPTCHA and production HTTPS site remain failed. There is no production clearance claim, real OTP expiry wait, refresh reuse-after-window proof, real CAPTCHA challenge or full deployed HTTP acceptance in these probes. SCIM/OCR requirements remain independent.
+
+The previous “templates pending custom SMTP” paragraphs below describe the earlier checkpoint and are superseded by this latest result. Operator scripts and private rollback/fixture files are under `work/`; never include that private operator material or runtime `.env` in source archives. The final frontend integration remains deferred.
+
+## Hosted configuration progress — 29 October 2026
+
+The user supplied a project-scoped management token through the protected operator environment. Actual Auth configuration reads now succeed. A reviewed settings-only PATCH succeeded and independent readback confirms `password_min_length=12` (previously6) and `mailer_otp_exp=600` seconds (previously3600). Existing 8-digit OTPs, confirmation requirement, refresh rotation/reuse interval, one-hour access tokens and enabled TOTP enrollment/verification were preserved.
+
+The first combined settings/template request returned HTTP400; a subsequent read confirmed all six targeted fields remained at their prior values. Supabase's [current free-tier template rule](https://github.com/orgs/supabase/discussions/46599) requires custom SMTP for affected projects. No provider error-body contents were retained. The subsequent reviewed settings-only request changed only the two numeric fields above. Template subjects/content remain pending custom SMTP. No dummy SMTP settings or paid upgrade were used to bypass the restriction.
+
+`scripts/configure_supabase_auth_baseline.py` defaults to planning; `--apply` performs one narrow PATCH with an exclusive private rollback file and independent readback. `--settings-only` excludes all email subjects/templates and explicitly reports them deferred. Stronger numeric settings are preserved. It never configures SMTP/CAPTCHA secrets, domains, signing keys, paid features or session policies. A rejected/timeout PATCH requires reconciliation and is never automatically retried; an uncertain outcome is represented as null, not a false assertion that nothing changed. Operator rollback files must remain outside source/ZIPs. Only targeted prior values are retained, never a raw configuration dump.
+
+Current evidence: `docs/supabase-auth-baseline-results.json` and `supabase-auth-policy-results.json`. The policy checker now records a successful management read, with password/OTP-lifetime checks passing. Custom SMTP, numeric-code templates, CAPTCHA and an approved production HTTPS site remain incomplete. The user has no sender domain; a dedicated Gmail/app-password path is being prepared for delivery testing, not declared production readiness. SCIM and representative OCR/privacy acceptance are still separate outstanding requirements.
+
+The application adapters, signup resend, numeric OTP validation, redacted configuration checker and source email templates are implemented. Hosted provider configuration and live delivery remain distinct acceptance requirements. No existing account, project setting, SMTP subscription or directory is created or changed by these assets.
+
+## Reviewable deployment inputs
+
+Use `supabase/templates/confirmation.html` for the confirmation email content and `supabase/templates/recovery.html` for recovery content. Both use the provider's `{{ .Token }}` interpolation. Set clear subjects (Confirm your MESH email / Reset your MESH password). The application verifies a code through `/api/v1/auth/verify`, then uses the returned provider session for recovery password updates. Passwords, OTPs and CAPTCHA results remain provider-owned.
+
+The checker baseline `mesh-r1-auth-1` checks enabled email/signup, required confirmation, CAPTCHA, refresh rotation, TOTP enrollment and verification; access-token lifetime 300–3600 seconds; password minimum 12–128; refresh reuse window 0–10 seconds; numeric email OTP lifetime 60–600 seconds and length 6–10; resend cooldown 60–3600 seconds. These are MESH acceptance bounds, not claims about provider defaults. Missing or null fields remain unknown, including fields not exposed by the management API version. Unknown checks require verified administrator evidence rather than invented defaults.
+
+It checks presence of custom SMTP host, user and sender address; this does not verify the password, TLS handshake, sender-domain authentication, delivery reputation or provider availability. Source templates must be explicitly configured before the report can verify them. The site URL must be exact HTTPS without credentials, wildcard, query or fragment. Redirect entries must be exact HTTPS URLs; an empty additional allowlist is allowed. The intended domain/ownership and complete allowlist still require administrator review. Session inactivity/timebox policy, CAPTCHA provider/account ownership and privileged MESH MFA enforcement require separate deployment review; they are not inferred from template or SMTP checks.
+
+Read-only configuration endpoint and field contract: [Supabase Auth configuration management API](https://supabase.com/docs/reference/api/v1-get-auth-service-config). Custom transport setup: [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Use a token with Auth configuration read authority for the checker. A database password, publishable API key or Storage key does not grant that authority.
+
+## Live evidence still required
+
+Use a controlled inbox and dedicated authorized identities. Record non-secret fixture identifiers and cleanup status in a protected operator ledger. Never put credentials, message bodies, OTPs, recovery links, provider config dumps or TOTP secrets in reports.
+
+1. Verify legitimate CAPTCHA/signup, receive the confirmation message in the chosen inbox, verify the code and confirm provider identity/session. Independently verify direct-provider missing/invalid CAPTCHA rejection so the MESH proxy is not the only protection.
+2. Request confirmation resend; prove cooldown, eligibility and generic responses for pending/confirmed/unknown identities without relying on inbox timing as an enumeration guarantee. Verify expired, invalid, replayed and superseded codes according to the configured provider behavior; do not assume resend invalidates every earlier code without evidence.
+3. Complete recovery delivery, code verification and authenticated password update; verify old-password rejection and fresh login. Exercise expiry/replay and provider outages without logging secret inputs. This mutates a dedicated disposable identity only.
+4. Exercise refresh rotation/reuse behavior, logout, MESH observed-session revocation and privileged MFA against deployed policy. Preserve existing scope distinctions: observed MESH revocation does not prove revocation of every unseen provider session.
+5. Verify MESH invitations separately using authenticated STARTTLS and the configured HTTPS acceptance endpoint: actual inbox delivery, resend rotation, cancellation, expired links, cross-email/tenant denial, provider outage/retry and at-least-once crash behavior. Check encrypted outbox retention and key availability while messages remain pending.
+6. Remove only recorded disposable fixtures and verify cleanup. Do not rerun an unresolved fixture ledger or delete real user accounts.
+
+The existing local protocol/TLS/outbox tests and earlier scoped hosted Auth fixtures remain useful evidence but do not satisfy the live inbox/CAPTCHA acceptance above. R1-05 real SCIM and R1-06 approved production OCR/privacy acceptance retain their own prerequisites in the fixed remaining-work checklist.

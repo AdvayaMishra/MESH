@@ -1,0 +1,113 @@
+# Backend deployment scaffold. Run the offline configuration gate before use.
+# HTTPS termination and externally managed PostgreSQL/Redis are operator inputs.
+x-runtime: &runtime
+  ENVIRONMENT: production
+  TEST_MODE: 'false'
+  REQUIRE_PRIVILEGED_MFA: 'true'
+  DATABASE_URL: ${DATABASE_URL:?Set verified-TLS restricted PostgreSQL connection}
+  REDIS_URL: ${REDIS_URL:?Set authenticated verified-TLS Redis connection}
+  AUTH_RATE_SECRET: ${AUTH_RATE_SECRET:?Set an independent authentication limiter secret}
+  SUPABASE_URL: ${SUPABASE_URL:?Set the authorized Supabase project URL}
+  SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:?Set the public project key}
+  SUPABASE_STORAGE_KEY:
+  CORS_ORIGINS: ${CORS_ORIGINS:?Set exact HTTPS application origins}
+  INVITATION_BASE_URL: ${INVITATION_BASE_URL:?Set the HTTPS invitation acceptance endpoint}
+  SMTP_HOST: ${SMTP_HOST:?Set authenticated SMTP host}
+  SMTP_PORT: ${SMTP_PORT:?Set the SMTP STARTTLS port}
+  SMTP_STARTTLS: 'true'
+  SMTP_FROM: ${SMTP_FROM:?Set the verified sender address}
+  SMTP_USERNAME: ${SMTP_USERNAME:?Set SMTP login}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:?Set SMTP secret}
+  MAIL_ENCRYPTION_KEY: ${MAIL_ENCRYPTION_KEY:?Set the independent invitation encryption key}
+  SCIM_BINDINGS:
+  CLAMAV_HOST:
+  CLAMAV_PORT: ${CLAMAV_PORT:-3310}
+  CLAMAV_TLS: ${CLAMAV_TLS:-true}
+  CLAMAV_CA_FILE:
+  CLAMAV_TLS_SERVER_NAME:
+  DOCUMENT_OCR_ENABLED: ${DOCUMENT_OCR_ENABLED:-false}
+  DOCUMENT_OCR_KEY:
+  DOCUMENT_OCR_IMAGE:
+  GITHUB_APP_ID:
+  GITHUB_PRIVATE_KEY:
+  GITHUB_INSTALLATIONS:
+  GITHUB_WEBHOOK_SECRET:
+  GITHUB_WEBHOOK_PREVIOUS_SECRET:
+  GITHUB_SCAN_ACTORS:
+  AWS_ROLE_BINDINGS:
+  AWS_BILLING_ROLE_BINDINGS:
+  AWS_KEY_MAX_AGE_DAYS:
+  AWS_DEFAULT_REGION:
+  TELEMETRY_RETENTION_DAYS:
+  AI_PROVIDER:
+  AI_MODEL:
+  AI_URL:
+  AI_API_KEY:
+  AI_ALLOW_EXTERNAL:
+  AI_POLICIES:
+
+x-service: &service
+  image: ${MESH_BACKEND_IMAGE:?Set the reviewed backend repository@sha256 digest}
+  environment: *runtime
+  user: '10001:10001'
+  init: true
+  read_only: true
+  tmpfs: ['/tmp:rw,noexec,nosuid,size=64m,uid=10001,gid=10001']
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 128
+  mem_limit: ${MESH_MEMORY_LIMIT:-768m}
+  cpus: ${MESH_CPU_LIMIT:-1.0}
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *service
+    command: [uvicorn, app.main:app, --host, 0.0.0.0, --port, '8000', --no-access-log, --proxy-headers, --forwarded-allow-ips, '${MESH_TRUSTED_PROXY_IPS:?Set exact trusted ingress IP addresses}']
+    ports: ['127.0.0.1:8000:8000']
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready',timeout=5).close()"]
+      interval: 15s
+      timeout: 8s
+      start_period: 30s
+      retries: 3
+  worker:
+    <<: *service
+    profiles: [worker]
+    command: [python, -m, app.worker, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}']
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, outbox, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}']
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+  retention:
+    <<: *service
+    profiles: [documents]
+    command: [python, -m, app.maintenance, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}']
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, retention, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}']
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+  cloud-worker:
+    <<: *service
+    profiles: [cloud]
+    command: [python, -m, app.cloud_worker, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}', --loop]
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, cloud, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}']
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+  billing-worker:
+    <<: *service
+    profiles: [billing]
+    command: [python, -m, app.billing_worker, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}', --loop]
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, billing, --organization, '${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}']
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3

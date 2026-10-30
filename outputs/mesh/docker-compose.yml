@@ -1,0 +1,186 @@
+services:
+  postgres:
+    image: postgres:16-alpine@sha256:f4610795587492cd4fb887c2dc3de301b813278bb6f616992061141b5f15ac36
+    environment:
+      POSTGRES_DB: mesh
+      POSTGRES_USER: mesh_admin
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Set POSTGRES_ADMIN_PASSWORD in .env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U mesh_admin -d mesh"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine@sha256:57e4255cc971b1c8d6f8a6ca283ac01bc3ecdd914273ef6bfaede87aaecd6541
+    command: [redis-server, --save, "", --appendonly, "no"]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      retries: 10
+  mailpit:
+    image: axllent/mailpit:v1.27@sha256:e22dce5b36f93c77082e204a3942fb6b283b7896e057458400a4c88344c3df68
+    ports: ["127.0.0.1:8025:8025"]
+  migrate:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://mesh_admin:${POSTGRES_ADMIN_PASSWORD}@postgres:5432/mesh
+      MESH_DB_PASSWORD: ${MESH_DB_PASSWORD:?Set MESH_DB_PASSWORD in .env}
+    command: [sh, -c, "alembic upgrade head && python scripts/bootstrap_role.py"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    environment: &runtime
+      DATABASE_URL: postgresql+psycopg://mesh_runtime:${MESH_DB_PASSWORD}@postgres:5432/mesh
+      REDIS_URL: redis://redis:6379/0
+      AUTH_RATE_SECRET:
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_FROM: ${SMTP_FROM:-mesh@localhost}
+      INVITATION_BASE_URL: ${INVITATION_BASE_URL:-http://localhost:3000/invitations/accept}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-false}
+      SMTP_USERNAME:
+      SMTP_PASSWORD:
+      MAIL_ENCRYPTION_KEY: ${MAIL_ENCRYPTION_KEY:-}
+      CLAMAV_HOST: ${CLAMAV_HOST:-clamav}
+      CLAMAV_PORT: ${CLAMAV_PORT:-3310}
+      CLAMAV_TLS: ${CLAMAV_TLS:-false}
+      CLAMAV_CA_FILE:
+      CLAMAV_TLS_SERVER_NAME:
+      DOCUMENT_OCR_ENABLED: ${DOCUMENT_OCR_ENABLED:-false}
+      DOCUMENT_OCR_KEY:
+      DOCUMENT_OCR_IMAGE: ${DOCUMENT_OCR_IMAGE:-mesh-ocr:local}
+      SUPABASE_STORAGE_KEY: ${SUPABASE_STORAGE_KEY:-}
+      ENVIRONMENT:
+      REQUIRE_PRIVILEGED_MFA:
+      GITHUB_APP_ID:
+      GITHUB_PRIVATE_KEY:
+      GITHUB_INSTALLATIONS:
+      GITHUB_WEBHOOK_SECRET:
+      GITHUB_WEBHOOK_PREVIOUS_SECRET:
+      GITHUB_SCAN_ACTORS:
+      AWS_ROLE_BINDINGS:
+      AWS_BILLING_ROLE_BINDINGS:
+      AWS_KEY_MAX_AGE_DAYS:
+      SCIM_BINDINGS:
+      TELEMETRY_RETENTION_DAYS:
+      AWS_DEFAULT_REGION:
+      AI_PROVIDER:
+      AI_MODEL:
+      AI_URL:
+      AI_API_KEY:
+      AI_ALLOW_EXTERNAL:
+      AI_POLICIES:
+      CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:3000"]}
+    ports: ["127.0.0.1:8000:8000"]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+  worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    profiles: [worker]
+    environment: *runtime
+    command: [python, -m, app.worker, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}"]
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, outbox, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  billing-worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    profiles: [billing]
+    environment: *runtime
+    command: [python, -m, app.billing_worker, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}", --loop]
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, billing, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  cloud-worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    profiles: [cloud]
+    environment: *runtime
+    command: [python, -m, app.cloud_worker, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}", --loop]
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, cloud, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  retention:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+    profiles: [documents]
+    environment: *runtime
+    command: [python, -m, app.maintenance, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}"]
+    healthcheck:
+      test: [CMD, python, -m, app.worker_health, --kind, retention, --organization, "${WORKER_ORGANIZATION_ID:-00000000-0000-4000-8000-000000000000}"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  clamav:
+    image: clamav/clamav:stable@sha256:e19130cdebaeacc71fa46eab3ed6f69941f2f22aa5e08d55e9197f8edf43ce5e
+    profiles: [documents]
+    volumes:
+      - clamav-signatures:/var/lib/clamav
+    healthcheck:
+      test: [CMD, clamdcheck.sh]
+      interval: 30s
+      retries: 20
+volumes:
+  postgres-data:
+  clamav-signatures:

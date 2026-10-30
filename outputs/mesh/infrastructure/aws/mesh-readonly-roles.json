@@ -1,0 +1,78 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "MESH commercial-AWS read-only posture and optional separate billing roles. No deployment is performed by the backend.",
+  "Parameters": {
+    "SourceRoleArn": {
+      "Type": "String",
+      "AllowedPattern": "arn:aws:iam::[0-9]{12}:role/[A-Za-z0-9+=,.@_/-]{1,512}",
+      "Description": "Exact pre-existing trusted workload IAM role; no account-root, service, session or wildcard principal."
+    },
+    "MeshOrganizationId": {
+      "Type": "String",
+      "AllowedPattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+      "Description": "Canonical MESH tenant UUID; required sts:ExternalId in both role trust policies and a metadata tag."
+    },
+    "EnableBillingRole": {
+      "Type": "String",
+      "Default": "false",
+      "AllowedValues": ["false", "true"],
+      "Description": "Opt in to a separate Cost Explorer read role. Provider queries can incur charges."
+    }
+  },
+  "Conditions": {
+    "BillingEnabled": {"Fn::Equals": [{"Ref": "EnableBillingRole"}, "true"]}
+  },
+  "Resources": {
+    "PostureRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "Description": "MESH bounded inventory/IAM collector; read observations only",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{"Effect": "Allow", "Principal": {"AWS": {"Ref": "SourceRoleArn"}}, "Action": "sts:AssumeRole", "Condition": {"StringEquals": {"sts:ExternalId": {"Ref": "MeshOrganizationId"}}}}]
+        },
+        "Policies": [{
+          "PolicyName": "mesh-posture-observations",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [{
+              "Effect": "Allow",
+              "Action": [
+                "s3:ListAllMyBuckets", "s3:GetBucketPolicyStatus", "s3:GetBucketPolicy",
+                "s3:GetEncryptionConfiguration", "s3:GetBucketLogging",
+                "ec2:DescribeSecurityGroups", "rds:DescribeDBInstances",
+                "iam:GetAccountSummary", "iam:ListUsers", "iam:GetLoginProfile",
+                "iam:ListMFADevices", "iam:ListAccessKeys", "iam:ListAttachedUserPolicies",
+                "iam:ListRoles", "iam:GetAccountAuthorizationDetails", "iam:GetPolicy", "iam:GetPolicyVersion"
+              ],
+              "Resource": "*"
+            }]
+          }
+        }],
+        "Tags": [{"Key": "MeshOrganizationId", "Value": {"Ref": "MeshOrganizationId"}}, {"Key": "MeshPurpose", "Value": "posture"}]
+      }
+    },
+    "BillingRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "BillingEnabled",
+      "Properties": {
+        "Description": "MESH account-filtered Cost Explorer observations; never invoice verification",
+        "MaxSessionDuration": 3600,
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [{"Effect": "Allow", "Principal": {"AWS": {"Ref": "SourceRoleArn"}}, "Action": "sts:AssumeRole", "Condition": {"StringEquals": {"sts:ExternalId": {"Ref": "MeshOrganizationId"}}}}]
+        },
+        "Policies": [{
+          "PolicyName": "mesh-billing-observations",
+          "PolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": ["ce:GetCostAndUsage"], "Resource": "*"}]}
+        }],
+        "Tags": [{"Key": "MeshOrganizationId", "Value": {"Ref": "MeshOrganizationId"}}, {"Key": "MeshPurpose", "Value": "billing"}]
+      }
+    }
+  },
+  "Outputs": {
+    "PostureRoleArn": {"Value": {"Fn::GetAtt": ["PostureRole", "Arn"]}},
+    "BillingRoleArn": {"Condition": "BillingEnabled", "Value": {"Fn::GetAtt": ["BillingRole", "Arn"]}}
+  }
+}

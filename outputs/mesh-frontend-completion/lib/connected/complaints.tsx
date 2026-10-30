@@ -1,0 +1,17 @@
+"use client";
+import {useState} from "react";
+import {Card,CardHeader,CardBody} from "@/components/ui/card";
+import {PageHeader} from "@/components/features/page-header";
+import {Button} from "@/components/ui/button";
+import {Field,Input,Textarea} from "@/components/ui/input";
+import {useLive} from "./live-state";
+import {request} from "./client";
+import {useResource} from "./security";
+import {ErrorMessage,rows} from "./hr";
+
+export function LiveComplaints(){
+ const live=useLive(),cases=useResource("/api/v1/hr/complaints?limit=100");
+ const [busy,setBusy]=useState(false),[error,setError]=useState(""),[saved,setSaved]=useState("");
+ async function change(id:string,status:string){setBusy(true);setError("");setSaved("");try{await request(`/api/v1/hr/complaints/${id}`,"PATCH",{status},live.profile?.organization_id);cases.refresh();setSaved("Case status saved.");}catch(e){setError(e instanceof Error?e.message:"Case status could not be saved");}finally{setBusy(false);}}
+ return <div className="space-y-6"><PageHeader title="Confidential complaints" description="Submit a concern for HR review. These records include your identity; submissions are not anonymous."/><Card><CardHeader title="Submit a concern" subtitle="Only your own cases and, for HR, cases authorized for handling are returned by the backend."/><CardBody><form className="space-y-4" onSubmit={async e=>{e.preventDefault();const form=e.currentTarget,data=new FormData(form);setBusy(true);setError("");setSaved("");try{await request("/api/v1/hr/complaints","POST",{subject:data.get("subject"),body:data.get("body")},live.profile?.organization_id);form.reset();cases.refresh();setSaved("Concern saved for HR review.");}catch(e){setError(e instanceof Error?e.message:"Concern could not be saved");}finally{setBusy(false);}}}><Field label="Subject" htmlFor="complaint-subject"><Input id="complaint-subject" name="subject" required maxLength={200}/></Field><Field label="Your concern" htmlFor="complaint-body"><Textarea id="complaint-body" name="body" required maxLength={4000}/></Field><Button disabled={busy}>{busy?"Saving…":"Submit concern"}</Button></form><ErrorMessage error={error}/>{saved&&<p role="status" className="mt-4 text-sm">{saved}</p>}</CardBody></Card><Card><CardHeader title={live.profile?.role==="hr"?"Cases available for HR review":"Your submitted concerns"} action={<Button size="sm" variant="secondary" disabled={cases.loading} onClick={cases.refresh}>Refresh cases</Button>}/><CardBody><ErrorMessage error={cases.error}/>{cases.loading?<p className="text-sm">Loading cases…</p>:<>{rows(cases.data).length===0&&!cases.error&&<p className="py-5 text-sm text-ink-2">No concerns have been recorded in this view.</p>}<p className="mb-4 text-xs text-ink-3">This view loads up to 100 cases. HR cannot handle their own submission.</p><ul className="divide-y divide-line">{rows(cases.data).map(c=><li key={String(c.id)} className="space-y-3 py-5"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-semibold">{String(c.subject)}</h2><span className="text-sm text-ink-2">{String(c.status)}</span></div><p className="whitespace-pre-wrap break-words text-sm text-ink-2">{String(c.body)}</p>{live.profile?.role==="hr"&&c.author_id!==live.profile.user_id&&["open","investigating"].includes(String(c.status))&&<Button size="sm" disabled={busy} onClick={()=>void change(String(c.id),c.status==="open"?"investigating":"resolved")}>{c.status==="open"?"Start investigation":"Resolve case"}</Button>}</li>)}</ul></>}</CardBody></Card></div>;
+}

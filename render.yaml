@@ -1,0 +1,18 @@
+# Free API-only initial deployment. No paid worker/service is provisioned here.
+services:
+  - type: web
+    name: mesh-api
+    runtime: docker
+    plan: free
+    dockerContext: ./outputs/mesh
+    dockerfilePath: ./outputs/mesh/infrastructure/docker/Dockerfile
+    dockerCommand: sh -c 'exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000} --no-access-log --no-proxy-headers'
+    healthCheckPath: /health/ready
+    envVars:
+      - fromGroup: mesh-backend-private
+      - key: ENVIRONMENT
+        value: production
+      - key: TEST_MODE
+        value: "false"
+      - key: REQUIRE_PRIVILEGED_MFA
+        value: "true"
